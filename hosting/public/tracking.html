@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Live Courier Tracking</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#000;overflow:hidden}
+#map{height:100vh;width:100vw}
+#status{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:1000;background:#000;color:#FF6B00;padding:8px 24px;border-radius:20px;font-size:14px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.5);border:1px solid #FF6B00;display:none;white-space:nowrap}
+#last-update{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(0,0,0,.85);color:#fff;padding:6px 16px;border-radius:12px;font-size:12px;backdrop-filter:blur(4px)}
+#error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;color:#fff;text-align:center;display:none}
+#error h2{color:#FF6B00;margin-bottom:8px}
+#error p{color:#999;font-size:14px}
+</style>
+</head>
+<body>
+<div id="status"></div>
+<div id="map"></div>
+<div id="last-update"></div>
+<div id="error"><h2>Connection Lost</h2><p>Unable to reach tracking service</p></div>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getDatabase,ref,onValue,off} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import {getAuth,signInAnonymously} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {getFirestore,doc,getDoc} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCf-Placeholder',
+  authDomain: 'smart-courier-app-e8624.firebaseapp.com',
+  databaseURL: 'https://smart-courier-app-e8624-default-rtdb.firebaseio.com',
+  projectId: 'smart-courier-app-e8624',
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const firestore = getFirestore(app);
+
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token') || '';
+let country = params.get('country') || 'ae';
+
+const statusEl = document.getElementById('status');
+const lastUpdateEl = document.getElementById('last-update');
+const errorEl = document.getElementById('error');
+
+let map = null;
+let marker = null;
+let pulseRing = null;
+let userId = '';
+
+function initMap(lat,lng){
+  map = L.map('map',{zoomControl:true,attributionControl:false}).setView([lat,lng],15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+  }).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+
+  marker = L.circleMarker([lat,lng],{
+    radius:10,fillColor:'#FF6B00',color:'#fff',weight:3,fillOpacity:1,
+  }).addTo(map);
+
+  pulseRing = L.circleMarker([lat,lng],{
+    radius:22,fillColor:'#FF6B00',color:'transparent',fillOpacity:0.18,
+  }).addTo(map);
+
+  statusEl.textContent = '\u{1F4CD} Tracking Active';
+  statusEl.style.display = 'block';
+}
+
+function updateMarker(lat,lng){
+  if(!map){initMap(lat,lng);return}
+  marker.setLatLng([lat,lng]);
+  if(pulseRing)pulseRing.setLatLng([lat,lng]);
+  map.panTo([lat,lng],{animate:true,duration:0.5});
+}
+
+function updateStatus(data){
+  errorEl.style.display = 'none';
+  if(!data||!data.c){
+    statusEl.textContent = '\u23F8\uFE0F Courier offline';
+    return;
+  }
+  statusEl.textContent = '\u{1F4CD} Tracking Active';
+  if(data.t){
+    const secs = Math.floor((Date.now()-data.t)/1000);
+    if(secs<60)lastUpdateEl.textContent = `Updated ${secs}s ago`;
+    else if(secs<3600)lastUpdateEl.textContent = `Updated ${Math.floor(secs/60)}m ago`;
+    else lastUpdateEl.textContent = `Updated ${Math.floor(secs/3600)}h ago`;
+  }
+}
+
+async function lookupTrackingToken(token){
+  try{
+    const trackingDoc = await getDoc(doc(firestore,'tracking',token));
+    if(trackingDoc.exists()){
+      const data = trackingDoc.data();
+      userId = data.userId || '';
+      country = data.countryCode || country;
+      return true;
+    }
+    return false;
+  }catch(e){
+    console.error('Tracking lookup failed',e);
+    return false;
+  }
+}
+
+async function connect(){
+  if(!token){
+    document.getElementById('error').style.display='block';
+    document.getElementById('error').querySelector('h2').textContent='Missing Tracking Token';
+    document.getElementById('error').querySelector('p').textContent='Use the link from your WhatsApp message';
+    return;
+  }
+  try{
+    await signInAnonymously(auth);
+    const found = await lookupTrackingToken(token);
+    if(!found){
+      document.getElementById('error').style.display='block';
+      document.getElementById('error').querySelector('h2').textContent='Tracking Not Found';
+      document.getElementById('error').querySelector('p').textContent='This tracking link has not been activated yet. Please try again later.';
+      return;
+    }
+    const path = `/telemetry/${country}/${userId}`;
+    const telemetryRef = ref(db,path);
+    onValue(telemetryRef,(snap)=>{
+      const data = snap.val();
+      updateStatus(data);
+      if(data&&data.c){
+        const parts = data.c.split(',');
+        const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+        if(!isNaN(lat)&&!isNaN(lng))updateMarker(lat,lng);
+      }
+    },(err)=>{
+      errorEl.style.display='block';
+      console.error(err);
+    });
+  }catch(e){
+    errorEl.style.display='block';
+    console.error(e);
+  }
+}
+connect();
+</script>
+</body>
+</html>

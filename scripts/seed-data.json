@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "uid": "seed-admin-001",
+      "name": "Admin User",
+      "email": "admin@smartcourier.app",
+      "subscriptionTier": "BUSINESS",
+      "totalEarningsAed": 0.0,
+      "lastModifiedTimestamp": 1700000000000
+    }
+  ],
+  "routes": [],
+  "deliveries": []
+}

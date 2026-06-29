@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "telemetry": {
+      "$country": {
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $userId"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# Android / Gradle
+*.iml
+.gradle
+/local.properties
+/.idea
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+*.hprof
+
+# Firebase secrets (MUST NOT be committed)
+app/google-services.json
+google-services.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI / Editor
+*.log
+*.tmp
+.ci/
