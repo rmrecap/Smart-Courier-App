@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Surface(color = MaterialTheme.colorScheme.background) {
-                SmartCourierApp()
+                SmartCourierAppContent()
             }
         }
     }

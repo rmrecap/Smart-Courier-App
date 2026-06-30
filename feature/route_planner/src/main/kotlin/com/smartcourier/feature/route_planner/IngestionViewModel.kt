@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourier.core.domain.model.Coordinate
-import com.smartcourier.core.domain.model.DomainResult
+import com.smartcourier.core.domain.model.Resource
 import com.smartcourier.core.domain.model.UiText
 import com.smartcourier.core.domain.usecase.OptimizeRouteUseCase
 import com.smartcourier.core.domain.usecase.ParseAddressesUseCase
@@ -87,13 +87,14 @@ class IngestionViewModel @Inject constructor(
                 return@launch
             }
             when (val result = optimizeRouteUseCase("unknown_user", deliveries, DEFAULT_HUB)) {
-                is DomainResult.Success -> {
+                is Resource.Success -> {
                     _uiState.update { it.copy(isLoading = false) }
                     _effect.emit(IngestionEffect.NavigateToPreview(result.data.routeId))
                 }
-                is DomainResult.Error -> {
+                is Resource.Error -> {
                     _uiState.update { it.copy(isLoading = false, userMessage = UiText.DynamicString(result.exception.message ?: "Route optimization failed.")) }
                 }
+                is Resource.Loading -> { /* handled by isLoading state */ }
             }
         }
     }

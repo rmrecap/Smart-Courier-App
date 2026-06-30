@@ -22,6 +22,8 @@ Thumbs.db
 # Firebase CLI generated
 .firebase/
 .firebaserc
+.agents/
+skills-lock.json
 
 # CI / Editor
 *.log

@@ -12,6 +12,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.smartcourier.core.domain.model.DailyEarnings
 import com.smartcourier.core.ui.theme.ColorTokens
@@ -30,6 +32,7 @@ fun EarningsChart(
             .fillMaxWidth()
             .height(220.dp)
             .padding(top = Dimens.grid_24, bottom = Dimens.grid_24)
+            .testTag(EarningsChartTestTag)
     ) {
         val barCount = dailyEarnings.size
         val barSpacing = size.width / (barCount * 3f)
@@ -134,3 +137,5 @@ fun EarningsChart(
         }
     }
 }
+
+const val EarningsChartTestTag = "WeeklyEarningsChart"

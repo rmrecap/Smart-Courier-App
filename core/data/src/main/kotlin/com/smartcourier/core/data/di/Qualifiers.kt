@@ -3,5 +3,5 @@ package com.smartcourier.core.data.di
 import javax.inject.Qualifier
 
 @Qualifier
-@Retention(AnnotationRetention.BOUND)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class RestRepository

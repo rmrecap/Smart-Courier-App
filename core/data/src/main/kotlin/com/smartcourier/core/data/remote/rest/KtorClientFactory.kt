@@ -1,11 +1,10 @@
 package com.smartcourier.core.data.remote.rest
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerAuthProvider
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
@@ -22,17 +21,15 @@ import javax.inject.Singleton
 class KtorClientFactory @Inject constructor(
     private val authTokenProvider: AuthTokenProvider
 ) {
-    val gson: Gson = GsonBuilder()
-        .setLenient()
-        .create()
-
     fun create(): HttpClient = HttpClient {
         defaultRequest {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         }
 
         install(ContentNegotiation) {
-            gson(gson)
+            gson {
+                setLenient()
+            }
         }
 
         install(HttpTimeout) {
@@ -45,18 +42,11 @@ class KtorClientFactory @Inject constructor(
             bearer {
                 loadTokens {
                     val token = authTokenProvider.getToken()
-                    if (token != null) {
-                        io.ktor.client.plugins.auth.providers.BearerTokens(token, "")
-                    } else null
+                    if (token != null) BearerTokens(token, "") else null
                 }
                 refreshTokens {
                     val token = authTokenProvider.getToken()
-                    if (token != null) {
-                        io.ktor.client.plugins.auth.providers.BearerTokens(token, "")
-                    } else null
-                }
-                sendWithoutRequest { request ->
-                    request.url.toString().startsWith(ApiRoutes.deliveries)
+                    if (token != null) BearerTokens(token, "") else null
                 }
             }
         }

@@ -31,7 +31,9 @@ class OfflineFirstSettingsRepository @Inject constructor(
         userDao.upsertUser(current.copy(subscriptionTier = tier.name))
     }
 
-    override suspend fun clearLocalData() = withContext(Dispatchers.IO) {
-        context.deleteDatabase("smartcourier.db")
+    override suspend fun clearLocalData() {
+        withContext(Dispatchers.IO) {
+            context.deleteDatabase("smartcourier.db")
+        }
     }
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +48,7 @@ fun ActiveDeliveryScreen(
             .padding(Dimens.grid_16),
         verticalArrangement = Arrangement.spacedBy(Dimens.grid_16)
     ) {
-        LinearProgressIndicator(
+        androidx.compose.material3.LinearProgressIndicator(
             progress = { uiState.progress },
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.primary,
