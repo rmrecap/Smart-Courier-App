@@ -41,7 +41,7 @@ fun StopCard(
                 Text(
                     text = "$index",
                     style = MaterialTheme.typography.titleMedium,
-                    color = ColorTokens.SafetyOrange
+                    color = ColorTokens.DeliveryOrange
                 )
             }
             Spacer(modifier = Modifier.width(Dimens.grid_16))

@@ -3,7 +3,7 @@
 .gradle
 /local.properties
 /.idea
-/build
+build/
 /captures
 .externalNativeBuild
 .cxx
@@ -18,6 +18,10 @@ google-services.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Firebase CLI generated
+.firebase/
+.firebaserc
 
 # CI / Editor
 *.log

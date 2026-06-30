@@ -5,8 +5,8 @@ import kotlin.math.*
 
 class OptimizerEngine {
 
-    fun compute2Opt(coordinates: List<Coordinate>): List<Coordinate> {
-        if (coordinates.size <= 3) return coordinates
+    fun compute2Opt(coordinates: List<Coordinate>): List<Int> {
+        if (coordinates.size <= 3) return coordinates.indices.toList()
 
         val distanceMatrix = buildDistanceMatrix(coordinates)
         var route = nearestNeighbor(coordinates, distanceMatrix)
@@ -25,7 +25,7 @@ class OptimizerEngine {
             }
         }
 
-        return route.map { coordinates[it] }
+        return route
     }
 
     private fun buildDistanceMatrix(coords: List<Coordinate>): Array<DoubleArray> {
